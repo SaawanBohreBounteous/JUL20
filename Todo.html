@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<head>
+    <title>Drupal Assignment 4</title>
+    <style>
+        table, th, td {
+            border: 1px solid;
+        }
+    </style>
+</head>
+
+<body style="text-align: center;">
+    <h3>TODO LIST</h3>
+    <hr>
+    <div id="tableArea" style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;"></div>
+    <button onClick='addTodo()'>Add</button>
+    <button onClick='deleteId()'>Delete</button>
+    <button onClick='deleteAllCompleted()'>Delete All Completed</button>
+    <button onClick='changeStatus()'>Change Status</button>
+    <div onchange={filter(event)} style="margin-top: 20px;">
+        <input type="checkbox" name="filter" value="Completed" checked>Completed</input>
+        <input type="checkbox" name="filter" value="Not Completed" checked>Not Completed</input>
+        <input type="checkbox" name="filter" value="In Progress" checked>In Progress</input>
+    </div>
+
+    <div id="addTodoPopup" style="
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 200;
+        background: rgba(255,255,255,0.9);"
+    >
+        <div style="width: 200px; height: 200px; background: rgba(0,0,0,0.5); border-radius: 10px; padding-top: 20px;">
+            <input id="TODOName" type="text" placeholder="Enter name for Todo item" style="height: 30px;" /><br/><br/>
+            <div style="text-align: left; margin-left: 40px">
+                <input type="radio" name="status" value="Completed">Completed</input><br/>
+                <input type="radio" name="status" value="Not Completed">Not Completed</input><br/>
+                <input type="radio" name="status" value="In Progress">In Progress</input><br/><br/>
+            </div>
+            <button id="addTodoInfo" onClick='addTodoInfo()'>Add</button>
+        </div>
+    </div>
+    <div id="addTodoPopup2" style="
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 200;
+        background: rgba(255,255,255,0.9);"
+    >
+        <div style="width: 200px; height: 200px; background: rgba(0,0,0,0.5); border-radius: 10px; padding-top: 20px;">
+            <input id="TODOName2" type="text" placeholder="Enter name for Todo item" style="height: 30px;" /><br/><br/>
+            <div style="text-align: left; margin-left: 40px">
+                <input type="radio" name="status2" value="Completed">Completed</input><br/>
+                <input type="radio" name="status2" value="Not Completed">Not Completed</input><br/>
+                <input type="radio" name="status2" value="In Progress">In Progress</input><br/><br/>
+            </div>
+            <button id="updateTodoInfo" onClick='updateTodoInfo()'>Update</button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        let todoArray = [];
+        let IDcounter = 0;
+        let updateID = -1;
+
+        function filter(e) {
+            let tempArray = [];
+            let Elm = document.getElementsByName("filter");
+            for (i=0; i<Elm.length; i++) {
+                if(Elm[i].checked) {
+                    todoArray.forEach(obj => {
+                        if (obj.status == Elm[i].value) {
+                            tempArray.push(obj);
+                        }
+                    })
+                }
+            }
+            display(tempArray);
+        }
+
+        function display(arr) {
+            let tableString = "<table><tr><th>ID</th><th>TODO Item</th><th>Status</th></tr>";
+            arr.forEach( obj => {
+                tableString = tableString + "<tr><td>" + obj.id + "</td><td>" + obj.name + "</td><td>" + obj.status + "</td></tr>"
+            });
+            document.getElementById("tableArea").innerHTML = tableString + "</table>";
+        }
+
+        function deleteId() {
+            let id = Number.parseInt(prompt("Enter the id of the item you want to delete"));
+            if (todoArray.some((c) => c.id === id)) {
+
+                for (let i = 0; i < todoArray.length; i++) {
+                    if (todoArray[i].id === id) {
+                        todoArray.splice(i, 1);
+                        console.log("displaying the result");
+                        break;
+                    }
+                }
+                display(todoArray);
+            } else {
+                console.log("Record does not exist. Create a new one.");
+                alert("Record does not exist. Create a new one.");
+            }
+
+        }
+
+        function deleteAllCompleted() {
+            let tempArray = todoArray;
+            for (let i = 0; i < tempArray.length; i++) {
+                if (todoArray[i].status == "Completed") {
+                    todoArray.splice(i, 1);
+                }
+            }
+            console.log("All Status completed items are deleted");
+            display(todoArray);
+        }
+
+        function changeStatus() {
+            let idStatus = Number.parseInt(prompt("Enter id of the item you want to change"))
+            if (todoArray.some((c) => c.id == idStatus)) {
+                for(let item of todoArray){
+                    if(item.id == idStatus) {
+                        document.getElementById("TODOName2").value = item.name;
+                        document.getElementById("addTodoPopup2").style.display = "flex";
+                        updateID = idStatus;
+                        break;
+                    }
+                }
+            } else {
+                console.log("Invalid id")
+                alert("Invalid id");
+            }
+        }
+
+        function updateTodoInfo() {
+            let statusElm = document.getElementsByName("status2");
+            for (i=0; i<statusElm.length; i++) {
+                if (statusElm[i].checked) {
+                    newStatus = statusElm[i].value;
+                }
+            }
+            console.log(updateID);
+            if (updateID !== -1) {
+                todoArray[updateID - 1].status = newStatus;
+                updateID = -1;
+                document.getElementById("TODOName2").value = "";
+                for (i=0; i<statusElm.length; i++) {
+                    statusElm[i].checked = false;
+                }
+                document.getElementById("addTodoPopup2").style.display = "none";
+                display(todoArray);
+            }
+        }
+
+        function addTodo() {
+            document.getElementById("addTodoPopup").style.display = "flex";
+        }
+
+        function addTodoInfo() {
+            console.log("Here");
+            IDcounter = IDcounter + 1;
+            let newStatus = "";
+            let statusElm = document.getElementsByName("status");
+            for (i=0; i<statusElm.length; i++) {
+                if (statusElm[i].checked) {
+                    newStatus = statusElm[i].value;
+                }
+            }
+            objTemp = {
+                id: IDcounter,
+                name: document.getElementById("TODOName").value,
+                status: newStatus
+            };
+            todoArray.push(objTemp);
+            let tableString = "<table><tr><th>ID</th><th>TODO Item</th><th>Status</th></tr>";
+            todoArray.forEach( obj => {
+                tableString = tableString + "<tr><td>" + obj.id + "</td><td>" + obj.name + "</td><td>" + obj.status + "</td></tr>"
+            });
+            console.log(tableString);
+            document.getElementById("tableArea").innerHTML = tableString + "</table>";
+            document.getElementById("TODOName").value = "";
+            for (i=0; i<statusElm.length; i++) {
+                statusElm[i].checked = false;
+            }
+            document.getElementById("addTodoPopup").style.display = "none";
+        }
+
+    </script>
+</body>
+
+</html>
